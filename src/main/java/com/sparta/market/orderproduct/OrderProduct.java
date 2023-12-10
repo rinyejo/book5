@@ -25,11 +25,11 @@ public class OrderProduct {
     private Long quantity;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false, name = "product_id")
     private Product product;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false, name = "customer_order_id")
     private Order order;
 
 
