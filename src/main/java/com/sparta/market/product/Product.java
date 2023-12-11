@@ -1,5 +1,6 @@
 package com.sparta.market.product;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sparta.market.orderproduct.OrderProduct;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,7 +17,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-
 public class Product {
 
     @Id
@@ -24,7 +24,7 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false,length = 30)
+    @Column(unique = true, nullable = false, length = 30)
     private String name;
 
     @Column(nullable = false)
@@ -33,7 +33,14 @@ public class Product {
     @Column(nullable = false)
     private Long stock;
 
-    @OneToMany
+    @OneToMany(mappedBy = "product")
+    @JsonIgnore
     private List<OrderProduct> orderProducts;
 
+    public void setOrderProducts(List<OrderProduct> orderProducts) {
+        this.orderProducts = orderProducts;
+        for (OrderProduct orderProduct : orderProducts) {
+            orderProduct.setProduct(this);
+        }
+    }
 }

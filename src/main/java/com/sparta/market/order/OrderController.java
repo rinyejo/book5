@@ -1,6 +1,8 @@
 package com.sparta.market.order;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,29 +16,31 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/orders")
+@RequiredArgsConstructor
 public class OrderController {
 
-    private OrderService orderService;
+
+    private final OrderService orderService;
 
     @GetMapping
-    public List<Order> getAllOrders() {
+    public List<OrderDto> getAllOrders() {
         return orderService.getAllOrders();
     }
 
     @GetMapping("/{orderId}")
-    public Order getOrderById(@PathVariable Long orderId) {
-        return orderService.getOrderById(orderId);
+    public OrderDto getOrderById(@PathVariable Long orderId) {
+        return orderService.getOrderDtoById(orderId);
     }
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequestDto orderRequestDto) {
-        Order createdOrder = orderService.createOrder(orderRequestDto);
+    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
+        OrderDto createdOrder = orderService.createOrder(orderDto);
         return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
     }
 
     @PutMapping("/{orderId}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long orderId, @RequestBody OrderRequestDto orderRequestDto) {
-        Order updatedOrder = orderService.updateOrder(orderId, orderRequestDto);
+    public ResponseEntity<OrderDto> updateOrder(@PathVariable Long orderId, @RequestBody OrderDto orderDto) {
+        OrderDto updatedOrder = orderService.updateOrder(orderId, orderDto);
         return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
     }
 

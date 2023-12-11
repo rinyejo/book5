@@ -1,11 +1,13 @@
 package com.sparta.market.product;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class ProductRequestDto {
+@NoArgsConstructor
+public class ProductDto {
 
     private String name;
     private Long price;

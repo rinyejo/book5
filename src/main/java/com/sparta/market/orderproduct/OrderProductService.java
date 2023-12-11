@@ -1,39 +1,93 @@
 package com.sparta.market.orderproduct;
 
+import com.sparta.market.order.Order;
+import com.sparta.market.order.OrderService;
+import com.sparta.market.product.Product;
+import com.sparta.market.product.ProductService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 @Service
+@RequiredArgsConstructor
 public class OrderProductService {
-    @Autowired
-    private OrderProductRepository orderProductRepository;
 
-    public List<OrderProduct> getAllOrderProducts() {
-        return orderProductRepository.findAll();
+    private final OrderProductRepository orderProductRepository;
+    private final ProductService productService;
+    private final  OrderService orderService;
+
+    @Transactional
+    public List<OrderProductDto> getAllOrderProductDtos() {
+        List<OrderProduct> orderProducts = orderProductRepository.findAll();
+        return orderProducts.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
-    public OrderProduct getOrderProductById(Long orderProductId) {
-        return orderProductRepository.findById(orderProductId)
+    @Transactional
+    public OrderProductDto getOrderProductDtoById(Long orderProductId) {
+        OrderProduct orderProduct = orderProductRepository.findById(orderProductId)
                 .orElseThrow(() -> new EntityNotFoundException("주문 상품을 찾을 수 없습니다. ID: " + orderProductId));
+
+        return convertToDto(orderProduct);
     }
 
-    public OrderProduct createOrderProduct(OrderProductRequestDto orderProductRequestDto) {
+    @Transactional
+    public OrderProductDto createOrderProduct(OrderProductDto orderProductDto) {
         OrderProduct orderProduct = new OrderProduct();
-        // 주문 상품 생성에 필요한 비즈니스 로직 구현
-        return orderProductRepository.save(orderProduct);
+        orderProduct.setQuantity(orderProductDto.getQuantity());
+
+        Product product = productService.getProductById(orderProductDto.getProductId());
+        Order order = orderService.getOrderById(orderProductDto.getOrderDtoId());
+
+        orderProduct.setProduct(product);
+        orderProduct.setOrder(order);
+
+        orderProduct.calculatePrice();
+
+        OrderProduct savedOrderProduct = orderProductRepository.save(orderProduct);
+        return convertToDto(savedOrderProduct);
     }
 
-    public OrderProduct updateOrderProduct(Long orderProductId, OrderProductRequestDto orderProductRequestDto) {
-        OrderProduct existingOrderProduct = getOrderProductById(orderProductId);
-        // 주문 상품 요청 DTO를 기반으로 주문 상품 속성 업데이트
-        return orderProductRepository.save(existingOrderProduct);
+    @Transactional
+    public OrderProductDto updateOrderProduct(Long orderProductId, OrderProductDto orderProductDto) {
+        OrderProduct existingOrderProduct = orderProductRepository.findById(orderProductId)
+                .orElseThrow(() -> new EntityNotFoundException("주문 상품을 찾을 수 없습니다. ID: " + orderProductId));
+
+        existingOrderProduct.setQuantity(orderProductDto.getQuantity());
+
+        Product product = productService.getProductById(orderProductDto.getProductId());
+        Order order = orderService.getOrderById(orderProductDto.getOrderDtoId());
+
+        existingOrderProduct.setProduct(product);
+        existingOrderProduct.setOrder(order);
+        existingOrderProduct.calculatePrice();
+
+
+        OrderProduct updatedOrderProduct = orderProductRepository.save(existingOrderProduct);
+        orderService.updateOrderTotalPrice(order);
+        return convertToDto(updatedOrderProduct);
     }
 
+
+    @Transactional
     public void deleteOrderProduct(Long orderProductId) {
-        OrderProduct existingOrderProduct = getOrderProductById(orderProductId);
+        OrderProduct existingOrderProduct = orderProductRepository.findById(orderProductId)
+                .orElseThrow(() -> new EntityNotFoundException("삭제할 상품을 찾을 수 없습니다. id:" + orderProductId));
         orderProductRepository.delete(existingOrderProduct);
     }
-}
 
+
+    public OrderProductDto convertToDto(OrderProduct orderProduct) {
+        OrderProductDto orderProductDto = new OrderProductDto();
+        orderProductDto.setProductId(orderProduct.getProduct().getId());
+        orderProductDto.setQuantity(orderProduct.getQuantity());
+        orderProductDto.setOrderDtoId(orderProduct.getOrder().getId());
+        orderProductDto.setPrice(orderProduct.getPrice());
+
+
+        return orderProductDto;
+    }
+}

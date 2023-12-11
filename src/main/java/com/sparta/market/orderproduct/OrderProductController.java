@@ -1,6 +1,8 @@
 package com.sparta.market.orderproduct;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,27 +16,34 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/orderProducts")
+@RequiredArgsConstructor
 public class OrderProductController {
 
-    private OrderProductService orderProductService;
+
+    private final OrderProductService orderProductService;
 
     @GetMapping
-    public List<OrderProduct> getAllOrderProducts() {
-        return orderProductService.getAllOrderProducts();
+    public List<OrderProductDto> getAllOrderProducts() {
+        return orderProductService.getAllOrderProductDtos();
     }
+
     @GetMapping("/{orderProductId}")
-    public OrderProduct getOrderProductById(@PathVariable Long orderProductId) {
-        return orderProductService.getOrderProductById(orderProductId);
+    public OrderProductDto getOrderProductById(@PathVariable Long orderProductId) {
+        return orderProductService.getOrderProductDtoById(orderProductId);
     }
+
     @PostMapping
-    public ResponseEntity<OrderProduct> createOrderProduct(@RequestBody OrderProductRequestDto orderProductRequestDto) {
-        OrderProduct createdOrderProduct = orderProductService.createOrderProduct(orderProductRequestDto);
-        return new ResponseEntity<>(createdOrderProduct, HttpStatus.CREATED);
+    public ResponseEntity<OrderProductDto> createOrderProduct(@RequestBody OrderProductDto orderProductDto) {
+        OrderProductDto createdOrderProductDto = orderProductService.createOrderProduct(orderProductDto);
+        return new ResponseEntity<>(createdOrderProductDto, HttpStatus.CREATED);
     }
+
     @PutMapping("/{orderProductId}")
-    public ResponseEntity<OrderProduct> updateOrderProduct(@PathVariable Long orderProductId, @RequestBody OrderProductRequestDto orderProductRequestDto) {
-        OrderProduct updatedOrderProduct = orderProductService.updateOrderProduct(orderProductId, orderProductRequestDto);
-        return new ResponseEntity<>(updatedOrderProduct, HttpStatus.OK);
+    public ResponseEntity<OrderProductDto> updateOrderProduct(
+            @PathVariable Long orderProductId,
+            @RequestBody OrderProductDto orderProductDto) {
+        OrderProductDto updatedOrderProductDto = orderProductService.updateOrderProduct(orderProductId, orderProductDto);
+        return new ResponseEntity<>(updatedOrderProductDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{orderProductId}")
